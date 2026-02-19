@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Multi Host Converter</title>
+
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,Arial}
+    body{background:#0d1117;color:#e6edf3}
+
+    .top{background:#161b22;border-bottom:1px solid #30363d;padding:14px 20px;display:flex;align-items:center;justify-content:center;position:relative}
+    .menu{position:absolute;left:20px;display:flex;gap:20px;font-size:14px;color:#c9d1d9}
+    .menu span{cursor:pointer}
+    .menu span:hover{color:#58a6ff}
+    .title{font-weight:600;font-size:18px}
+
+    .box{max-width:820px;margin:40px auto;background:#161b22;padding:30px;border-radius:10px;box-shadow:0 0 30px rgba(0,0,0,.4)}
+    .h{display:none}
+
+    button,input,select,textarea{width:100%;padding:11px;margin-top:12px;border-radius:6px;border:1px solid #30363d;background:#0d1117;color:#fff}
+    textarea{height:150px;resize:none}
+    input:focus,select:focus,textarea:focus{border-color:#58a6ff;outline:none}
+
+    button{background:#238636;border:none;font-weight:600;cursor:pointer;transition:.2s}
+    button:hover{background:#2ea043}
+    button:disabled{background:#30363d;cursor:not-allowed}
+
+    .notice{margin-top:15px;font-size:14px;color:#c9d1d9}
+    .notice.red{color:#ff4d4f;font-weight:600}
+
+    .ledc{overflow:hidden;background:#000;margin-top:15px;height:28px;display:flex;align-items:center;border-radius:4px}
+    .led{color:#0f0;white-space:nowrap;font-family:monospace;font-size:13px;padding-left:100%;animation:s 12s linear infinite}
+    @keyframes s{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+
+    .n{font-size:13px;margin-top:10px;color:#8b949e}
+
+    pre{
+      background:#0d1117;padding:12px;margin-top:15px;white-space:pre-wrap;border-radius:6px;border:1px solid #30363d;
+      min-height:44px;overflow:auto;overflow-wrap:anywhere;word-break:break-word
+    }
+
+    .ck{margin-top:14px;display:flex;align-items:center;gap:8px;font-size:14px;color:#c9d1d9}
+    .ck input{width:auto;margin:0}
+    .ck a{color:#58a6ff;text-decoration:none}
+    .ck a:hover{text-decoration:underline}
+
+    .hp{display:none}
+
+    .chat-wrap{position:relative;margin-top:12px;width:100%;max-width:755px;height:406px}
+    .chat-ribbon{position:absolute;top:0;left:0;right:-10px;height:36px;background:#161b22;border-bottom:1px solid #30363d;z-index:10;pointer-events:none;display:flex;align-items:center;padding:0 12px;color:#c9d1d9;font-size:13px}
+    .chat-close-block{position:absolute;top:0;right:-10px;width:70px;height:36px;z-index:11;pointer-events:auto;background:transparent}
+
+    .dn-wrap{position:relative;width:100%}
+    .dn-wrap textarea{opacity:.75;cursor:not-allowed}
+    .dn-overlay{
+      position:absolute;inset:0;padding:11px;margin-top:12px;border-radius:6px;z-index:6;font-size:inherit;line-height:1.25;white-space:pre-wrap;
+      color:#ff4d4f;font-weight:600;pointer-events:none;user-select:none
+    }
+    .dn-overlay a{color:#58a6ff;text-decoration:none;pointer-events:auto}
+    .dn-overlay a:hover{text-decoration:underline}
+
+    @media(max-width:600px){.box{margin:20px;padding:20px}.menu{left:10px}}
+
+    /* BLOQUEIO MOBILE (sem botão) */
+    #mobileLock{
+      position:fixed;inset:0;z-index:999999;
+      background:#0d1117;color:#e6edf3;
+      display:none;align-items:center;justify-content:center;
+      padding:24px;text-align:center
+    }
+    #mobileLock .card{
+      width:min(720px,100%);
+      background:#161b22;border:1px solid #30363d;
+      border-radius:12px;padding:22px;
+      box-shadow:0 0 30px rgba(0,0,0,.4)
+    }
+    #mobileLock .msg{
+      font-size:18px;font-weight:700;line-height:1.35
+    }
+    #mobileLock .sub{
+      margin-top:10px;font-size:14px;color:#8b949e;line-height:1.35
+    }
+  </style>
+</head>
+
+<body>
+  <div id="mobileLock" aria-hidden="true">
+    <div class="card">
+      <div class="msg">Só funciona em computador ou notebook</div>
+      <div class="sub">Abra este site em um PC para continuar.</div>
+    </div>
+  </div>
+
+  <div class="top">
+    <div class="menu">
+      <span onclick="showPage('home')">Home</span>
+      <span onclick="showPage('sugestao')">Sugestão</span>
+    </div>
+    <div class="title">Multi Host Converter</div>
+  </div>
+
+  <div class="box">
+    <div id="home">
+      <h3>Escolha o host:</h3>
+
+      <select id="host" onchange="updateInstructions(true)">
+        <option value="">Selecione...</option>
+        <option value="mediafire">Mediafire</option>
+        <option value="gofile">Gofile</option>
+        <option value="pixeldrain">Pixeldrain</option>
+        <option value="ranoz">Ranoz</option>
+        <option value="megaup">MegaUp</option>
+        <option value="fuckingfast">FuckingFast.co</option>
+        <option value="datanodes">DataNodes.to</option>
+      </select>
+
+      <div class="ledc">
+        <div class="led">⚠ NÃO SOMOS UM SITE DE HOST PREMIUM — NÃO HOSPEDAMOS ARQUIVOS ⚠</div>
+      </div>
+
+      <div id="instructions" class="n"></div>
+      <div id="inputContainer" class="input-group">
+        <textarea id="links" placeholder="Escolha um host primeiro"></textarea>
+      </div>
+
+      <input type="text" id="honeypotHome" class="hp" autocomplete="off" />
+
+      <div class="notice" id="captchaBoxHome"></div>
+      <input type="number" id="captchaAnswerHome" placeholder="Digite o resultado" />
+
+      <div class="ck">
+        <input type="checkbox" id="agree" onchange="onAgreeChange()" />
+        <label for="agree">Eu li e aceito os <a href="termos.html">Termos de Uso</a></label>
+      </div>
+
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAACdC3IF2lULIIiy_" data-theme="dark"></div>
+
+      <button id="convertBtn" onclick="convert()" disabled>Converter Links</button>
+      <pre id="output"></pre>
+
+      <div class="n">Para melhor experiência utilize o IDM.</div>
+    </div>
+
+    <div id="sugestao" class="h">
+      <h3>Sugerir novo host:</h3>
+
+      <div class="ledc">
+        <div class="led">⚠Se o chat não aparecer,desliga o AdBlock/uBlock/AdGuard ⚠</div>
+      </div>
+
+      <div class="chat-wrap">
+        <div class="chat-ribbon">Sugestões (chat)</div>
+        <div class="chat-close-block" aria-hidden="true"></div>
+
+        <script
+          id="cid0020000432168424053"
+          data-cfasync="false"
+          async
+          src="//st.chatango.com/js/gz/emb.js"
+          style="width:755px;height:406px;"
+        >{"handle":"linkssugestao","arch":"js","styles":{"a":"009900","b":100,"c":"FFFFFF","d":"FFFFFF","k":"009900","l":"009900","m":"009900","n":"FFFFFF","p":"11.16","q":"009900","r":100,"ab":false,"usricon":0,"surl":0,"allowpm":0,"fwtickm":1}}</script>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const _0x4f21 = [
+      '\x68\x74\x74\x70\x73\x3a\x2f\x2f\x6d\x75\x6c\x74\x69\x2d\x68\x6f\x73\x74\x2d\x61\x70\x69\x2e\x6d\x65\x75\x70\x72\x6f\x6a\x65\x74\x6f\x2e\x77\x6f\x72\x6b\x65\x72\x73\x2e\x64\x65\x76',
+      '\x2f\x63\x6f\x6e\x76\x65\x72\x74'
+    ];
+
+    const WORKER_BASE = _0x4f21[0];
+    let captchaHome = 0;
+    let lastHost = '';
+
+    function showPage(p) {
+      document.getElementById('home').classList.add('h');
+      document.getElementById('sugestao').classList.add('h');
+      document.getElementById(p).classList.remove('h');
+    }
+
+    function genCaptchaHome() {
+      const n1 = Math.floor(Math.random() * 10) + 1;
+      const n2 = Math.floor(Math.random() * 10) + 1;
+      captchaHome = n1 + n2;
+      document.getElementById('captchaBoxHome').textContent =
+        'Verificação humana: Quanto é ' + n1 + ' + ' + n2 + '?';
+      document.getElementById('captchaAnswerHome').value = '';
+    }
+
+    genCaptchaHome();
+
+    function setConvertUIVisible(v) {
+      const b = document.getElementById('captchaBoxHome');
+      const a = document.getElementById('captchaAnswerHome');
+      const btn = document.getElementById('convertBtn');
+      b.style.display = v ? '' : 'none';
+      a.style.display = v ? '' : 'none';
+      btn.style.display = v ? '' : 'none';
+    }
+
+    function resetAgree() {
+      document.getElementById('agree').checked = false;
+      toggleButton();
+    }
+
+    function onAgreeChange() {
+      toggleButton();
+      updateInstructions(false);
+      requestAnimationFrame(() => updateInstructions(false));
+    }
+
+    function toggleButton() {
+      document.getElementById('convertBtn').disabled = !document.getElementById('agree').checked;
+    }
+
+    function muReset() {
+      const ids = [
+        'mu_tm_yes','mu_tm_no','mu_sc_yes','mu_sc_no',
+        'mu_tm_warn','mu_step2','mu_sc_warn','mu_step3'
+      ];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (el.type === 'checkbox') el.checked = false;
+        else el.style.display = 'none';
+      });
+    }
+
+    function muStep1(y) {
+      const y1 = document.getElementById('mu_tm_yes');
+      const n1 = document.getElementById('mu_tm_no');
+      const w1 = document.getElementById('mu_tm_warn');
+      const s2 = document.getElementById('mu_step2');
+      if (y) {
+        y1.checked = true;
+        n1.checked = false;
+        w1.style.display = 'none';
+        s2.style.display = '';
+      } else {
+        n1.checked = true;
+        y1.checked = false;
+        w1.style.display = '';
+        s2.style.display = 'none';
+        const s3 = document.getElementById('mu_step3');
+        if (s3) s3.style.display = 'none';
+      }
+    }
+
+    function muStep2(y) {
+      const y2 = document.getElementById('mu_sc_yes');
+      const n2 = document.getElementById('mu_sc_no');
+      const w2 = document.getElementById('mu_sc_warn');
+      const s3 = document.getElementById('mu_step3');
+      if (y) {
+        y2.checked = true;
+        n2.checked = false;
+        w2.style.display = 'none';
+        s3.style.display = '';
+      } else {
+        n2.checked = true;
+        y2.checked = false;
+        w2.style.display = '';
+        s3.style.display = 'none';
+      }
+    }
+
+    function muOpenTabs() {
+      const o = document.getElementById('output');
+      const ta = document.getElementById('links');
+      const raw = (ta?.value || '').trim();
+      if (!raw) {
+        o.textContent = 'Cole pelo menos 1 link do MegaUp.';
+        return;
+      }
+      const lks = raw.split('\n').map(x => x.trim()).filter(Boolean);
+      o.textContent = 'Abrindo abas...';
+
+      let op = 0;
+      lks.forEach(l => {
+        try {
+          if (window.open(l, '_blank', 'noopener,noreferrer')) op++;
+        } catch (e) {}
+      });
+
+      o.textContent = 'Abas abertas: ' + op + ' / ' + lks.length;
+    }
+
+    function updateInstructions(reset) {
+      const h = document.getElementById('host').value;
+      const inst = document.getElementById('instructions');
+      const cont = document.getElementById('inputContainer');
+      const ag = document.getElementById('agree').checked;
+
+      if (reset && h !== lastHost) resetAgree();
+      lastHost = h;
+
+      setConvertUIVisible(!['gofile', 'pixeldrain', 'datanodes', 'megaup'].includes(h));
+
+      switch (h) {
+        case 'mediafire':
+          inst.innerHTML = 'Cole os links do Mediafire (1 por linha).';
+          cont.innerHTML = '<textarea id="links" placeholder="1 link por linha"></textarea>';
+          break;
+
+        case 'gofile':
+          inst.innerHTML = '<span class="notice red">⚠ Usar a opção Extract from Folder!</span>';
+          cont.innerHTML = ag
+            ? '<div style="position:relative;width:100%;height:500px;overflow:hidden;border:1px solid #30363d;border-radius:6px;"><iframe src="https://gofile-bypass.cybar.xyz/" style="position:absolute;top:-570px;left:0;width:100%;height:1100px;border:none;" scrolling="no"></iframe></div>'
+            : '<div class="n">Aceite os Termos de Uso para carregar o Gofile.</div>';
+          break;
+
+        case 'pixeldrain':
+          inst.innerHTML = '<span class="notice red">⚠ Usar a opção Individual Links!</span>';
+          cont.innerHTML = ag
+            ? '<div style="position:relative;width:100%;height:600px;overflow:hidden;border:1px solid #30363d;border-radius:6px;"><iframe src="https://pixeldrain-bypass.cybar.xyz/" style="position:absolute;top:-1100px;left:0;width:100%;height:2000px;border:none;" scrolling="yes"></iframe><div style="position:absolute;top:0;left:0;width:390px;height:45px;z-index:9999;background:#0d1117;pointer-events:auto;"></div></div>'
+            : '<div class="n">Aceite os Termos de Uso para carregar o Pixeldrain.</div>';
+          break;
+
+        case 'ranoz':
+          inst.innerHTML = 'Cole links do Ranoz (1 por linha).<br>Formato: <code>https://ranoz.gg/file/XXXXXXXX</code>';
+          cont.innerHTML = '<textarea id="links" placeholder="1 link por linha"></textarea>';
+          break;
+
+        case 'megaup':
+          inst.innerHTML = '';
+          cont.innerHTML =
+            '<div class="n">Tutorial: instalar o <a href="https://www.tampermonkey.net/" target="_blank" rel="noopener noreferrer">Tampermonkey</a>, instalou?</div>' +
+            '<div class="ck">' +
+              '<input type="checkbox" id="mu_tm_yes" onchange="muStep1(true)"><label for="mu_tm_yes">Sim</label>' +
+              '<input type="checkbox" id="mu_tm_no" onchange="muStep1(false)"><label for="mu_tm_no">Não</label>' +
+            '</div>' +
+            '<div class="notice red" id="mu_tm_warn" style="display:none">Segue o tutorial</div>' +
+            '<div id="mu_step2" style="display:none">' +
+              '<div class="n">Próximo passo: instalar o <a href="https://multi-host-api.meuprojeto.workers.dev/multihost.user.js" target="_blank" rel="noopener noreferrer">script</a>, instalou?</div>' +
+              '<div class="ck">' +
+                '<input type="checkbox" id="mu_sc_yes" onchange="muStep2(true)"><label for="mu_sc_yes">Sim</label>' +
+                '<input type="checkbox" id="mu_sc_no" onchange="muStep2(false)"><label for="mu_sc_no">Não</label>' +
+              '</div>' +
+              '<div class="notice red" id="mu_sc_warn" style="display:none">Segue o tutorial</div>' +
+            '</div>' +
+            '<div id="mu_step3" style="display:none">' +
+              '<textarea id="links" placeholder="1 link por linha"></textarea>' +
+              '<button onclick="muOpenTabs()">Abrir Links (abas)</button>' +
+            '</div>';
+          muReset();
+          break;
+
+        case 'fuckingfast':
+          inst.innerHTML = 'Cole os links do FuckingFast (1 por linha).';
+          cont.innerHTML = '<textarea id="links" placeholder="1 link por linha"></textarea>';
+          break;
+
+        case 'datanodes':
+          inst.innerHTML = 'Cole os links do DataNodes (1 por linha).';
+          cont.innerHTML =
+            '<div class="dn-wrap">' +
+              '<textarea id="links" placeholder="" disabled></textarea>' +
+              '<div class="dn-overlay">DataNodes indisponível aqui\nTerá que que usar Python nesse projeto do <a href="https://github.com/suff3r1ng/MultiLinkExtractor-" target="_blank" rel="noopener noreferrer">github</a>.</div>' +
+            '</div>';
+          break;
+
+        default:
+          inst.innerHTML = h ? 'Cole os links (1 por linha).' : '';
+          cont.innerHTML = `<textarea id="links" placeholder="${h ? '1 link por linha' : 'Escolha um host primeiro'}"></textarea>`;
+      }
+    }
+
+    async function convert() {
+      const out = document.getElementById('output');
+      const h = document.getElementById('host').value;
+
+      if (['gofile', 'pixeldrain', 'datanodes'].includes(h)) {
+        out.textContent = h === 'datanodes'
+          ? 'DataNodes indisponível aqui. Use o GitHub.'
+          : 'Use o painel do ' + h + ' acima.';
+        return;
+      }
+
+      if (h === 'megaup') {
+        out.textContent = 'Siga o tutorial acima para usar o MegaUp.';
+        return;
+      }
+
+      const raw = document.getElementById('links')?.value || '';
+
+      if (document.getElementById('honeypotHome').value !== '') {
+        alert('Bloqueado');
+        return;
+      }
+
+      if (parseInt(document.getElementById('captchaAnswerHome').value || '0', 10) !== captchaHome) {
+        alert('Captcha incorreto');
+        genCaptchaHome();
+        return;
+      }
+
+      const tk = (document.querySelector('input[name="cf-turnstile-response"]')?.value || '').trim();
+      if (!tk) {
+        alert('Confirme o Turnstile');
+        return;
+      }
+
+      if (!h) {
+        alert('Selecione um host');
+        return;
+      }
+
+      const lks = raw.split('\n').map(x => x.trim()).filter(Boolean);
+      if (!lks.length) {
+        alert('Cole pelo menos 1 link');
+        return;
+      }
+
+      out.textContent = 'Convertendo...';
+
+      try {
+        const res = await fetch(WORKER_BASE + _0x4f21[1], {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ host: h, links: lks, token: tk })
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          out.textContent = data?.error ? ('Erro: ' + data.error) : ('Erro HTTP: ' + res.status);
+          return;
+        }
+
+        const reslt = Array.isArray(data?.results) ? data.results : [];
+        out.textContent = reslt.map(r => r.direct || ('ERRO: ' + r.input)).join('\n') || 'Nenhum resultado';
+      } catch (e) {
+        out.textContent = 'Erro de rede.';
+      } finally {
+        genCaptchaHome();
+        if (window.turnstile) window.turnstile.reset();
+      }
+    }
+
+    document.addEventListener('contextmenu', e => {
+      if (!e.target.closest('input,textarea,pre')) {
+        e.preventDefault();
+        window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank', 'noopener,noreferrer');
+      }
+    });
+
+    function applyMobileLock() {
+      const lock = document.getElementById('mobileLock');
+      const isMobile = window.matchMedia('(max-width: 900px), (pointer: coarse)').matches;
+      lock.style.display = isMobile ? 'flex' : 'none';
+      document.documentElement.style.overflow = isMobile ? 'hidden' : '';
+      document.body.style.overflow = isMobile ? 'hidden' : '';
+      lock.setAttribute('aria-hidden', isMobile ? 'false' : 'true');
+    }
+
+    applyMobileLock();
+
+    const mq = window.matchMedia('(max-width: 900px), (pointer: coarse)');
+    if (mq.addEventListener) mq.addEventListener('change', applyMobileLock);
+    else if (mq.addListener) mq.addListener(applyMobileLock);
+
+    updateInstructions(true);
+  </script>
+
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</body>
+</html>
